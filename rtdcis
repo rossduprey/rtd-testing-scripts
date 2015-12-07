@@ -68,7 +68,7 @@ until [[ $play = 0 ]]; do
 #else 
 #task=$((task+30))
 #fi
-# chose the course of action
+# choose the course of action
 case $play in
 	1) echo -e "Work on making coins..."
 		if [[ $gold -gt $task ]]; then
