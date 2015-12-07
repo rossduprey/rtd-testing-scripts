@@ -1,0 +1,396 @@
+#!/bin/bash
+
+#╔════════════════════════════════════════════╗
+#║		 			      ║
+#║			  		      ║
+#║         _______    _________   ______      ║
+#║        / _____ \  /___  ___/\ / ____ \     ║
+#║       / /____/ /\ \__/ /\__\// /\___\ \    ║
+#║      / __  ___/ /   / / /   / / /   / /\   ║
+#║     / /\_\ \__\/   / / /   / /_/___/ / /   ║
+#║    /_/ /  \_\     /_/ /   /_________/ /    ║
+#║    \_\/    \_\    \_\/    \_________\/     ║
+#║				 	      ║
+#║		ross t duprey	 	      ║
+#║					      ║
+#║	       ross@rtdcis.com                ║
+#║					      ║
+#║		231 233-3021                  ║
+#║					      ║
+#║					      ║
+#╚════════════════════════════════════════════╝
+
+#
+#rtdcisfun
+#
+#This script is a playground for me to learn fun things that I can do in bash.
+#
+#
+
+
+selection=
+
+#   ===================  numberplay function
+
+numbersPlay() {
+clear
+# setup
+coins=0
+wood=0
+iron=0
+stone=0
+gold=0
+crops=0
+food=0
+day=0
+logfile=/home/ross/Documents/numbergamelog
+
+# run the game
+play=1
+until [[ $play = 0 ]]; do 
+
+# START THE DAY!
+	day=$((day+1)) 
+# echo the stats and set task to zero
+	task=0
+	echo -e "Coins: $coins | Food: $food | Wood: $wood | Stone: $stone | Crops: $crops | Gold: $gold \n"
+#printf "%'.3f" "Coins: $coins | Food: $food | Wood: $wood | Stone: $stone | Crops: $crops | Gold: $gold"
+	echo "Day:" $day
+# generate a number to feed the mechanics and make it task
+	roll=$RANDOM
+	roll=$((roll-0))
+	task=$roll
+# turn the roll into an amount
+#if [ $roll -lt 1000 ]; then
+#task=$((task+10))
+#elif [ $roll -gt 1000 ] && [ $roll -lt 2000 ]; then
+#task=$((task+20))
+#else 
+#task=$((task+30))
+#fi
+# chose the course of action
+case $play in
+	1) echo -e "Work on making coins..."
+		if [[ $gold -gt $task ]]; then
+			 coins=$((coins+task))
+			 gold=$((gold-task)) 
+		else
+			echo -e "You do not have enough gold to make coins today."
+		fi ;;
+	2) echo -e "Work on making food..."
+		if [[ $crops -gt $task ]]; then
+			 food=$((food+task)) 
+			 crops=$((crops-task))
+		 else
+			 echo -e "You do not have enough crop to make food today."
+		fi ;;
+	3) echo -e "Work on chopping wood..."
+		if [[ $stone -gt $task ]]; then
+			stone=$((stone-task))
+			 wood=$((wood+task)) 
+		else
+			echo -e "You do not have enough stone to chop wood."
+		fi ;;	
+	4) echo -e "Work on digging stone..."
+		 stone=$((stone+task)) ;;
+	5) echo -e "Work on sowing crops..."
+		if [[ $wood -gt $task ]]; then
+		 	wood=$((wood-task))
+		 	crops=$((crops+task))
+		else
+			echo -e "You do not have enough wood to sow crops today."
+		fi ;;
+	6) echo -e "Work on mining gold..."
+		if [[ $food -gt $task ]]; then
+			 food=$((food-task)) 
+			 gold=$((gold+task)) 
+		else
+			echo -e "You do not have enough food to mine gold."
+		fi ;;
+	*) echo -e "Take a day off..."
+		if [[ $coins -gt $task ]]; then
+			 coins=$((coins-task))
+		else
+			echo -e "You do not have enough coins to take the day off."
+		fi ;;
+	0) exit ;;
+esac
+
+# log the action to a file
+#cat $day $roll >> $logfile
+
+# stop the game
+echo -e "What are we going to do tomorrow?"
+echo -e "\e[34m
+╔═══════════════════════════════╗
+║				║
+║	\e[0m	Menu\e[34m		║
+║				║
+║	\e[0m1 -\e[34m Coins		║
+║				║
+║	\e[0m2 -\e[34m Food		║
+║				║
+║	\e[0m3 -\e[34m Wood		║
+║				║
+║	\e[0m4 -\e[34m Stone		║
+║				║
+║	\e[0m5 -\e[34m Crops		║
+║				║
+║	\e[0m6 -\e[34m Gold		║
+║				║
+║	\e[0m0 -\e[34m Exit		║
+║				║
+╚═══════════════════════════════╝
+\e[0m"
+
+read play 
+clear
+done
+clear
+}
+
+#    ====================    backup function
+
+backup() {
+
+folderName=$(date +"%m-%d-%Y %H.%M")
+originalFolder=/run/user/1000/gvfs/smb-share:server=entropy,share=new%20volume
+backupFolder=/media/ross/df12a24a-7b0d-49d3-9ccd-fc38541a5058/ross/backups
+areyousure=0
+backType=0
+
+#make sure we want to backupFolder
+echo -e "\e[91mAre you sure?\e[0m 1=yes"
+read areyousure
+if [ $areyousure = 0 ]; then 
+	exit
+fi
+
+# find the folder to copy
+until [ -d "$originalFolder" ]; do
+	echo -e "\e[34mPlease enter the location that needs to be backed up:\e[0m"
+	read originalFolder
+done
+echo -e "\e[2m*** Original folder set...\e[0m"
+
+# find the dir to copy to
+until [ -d "$backupFolder" ]; do
+	echo -e "\e[34mPlease enter the destination folder:\e[0m"
+	read backupFolder
+done
+echo -e "\e[2m*** Back up folder set...\e[0m"
+
+# ask if archive or direct copy over
+echo -e "Will this be an archive(0) or direct copy(1)?"
+read backType
+if [ $backType = 0 ]; then
+
+# make the archive copy
+	if [ -d "$originalFolder" ] && [ -d "$backupFolder" ]; then
+		cd "$backupFolder"
+		echo -e "\e[2m*** Back up folder created...\e[0m"
+		echo -e "\e[2m*** Building archive...\e[0m"
+		tar czfv "$folderName"".tar.gz" "$originalFolder"
+		echo -e "\e[2m*** Done archiving files...\e[0m"
+		echo -e "\e[2m*** Back to the menu...\e[0m"
+	else 
+		echo -e "\e[33mThe archiving was unable to commence.\e[0m Exiting.."
+	fi
+else
+echo -e "\e[2m*** Direct copy was chosen...\e[0m"
+
+# make the direct copy
+	if [ -d "$originalFolder" ] && [ -d "$backupFolder" ]; then
+		cd "$backupFolder"
+		mkdir "$folderName"
+		echo -e "\e[2m*** Back up folder created...\e[0m"
+		echo -e "\e[2m*** Copying files...\e[0m"
+		cp -n -r -u "$originalFolder" "$folderName"
+		echo -e "\e[2m*** Done copying files...\e[0m"
+		echo -e "\e[2m*** Back to the menu...\e[0m"
+	else 
+		echo -e "\e[33mThe direct copy was unable to commence.\e[0m Exiting.."
+	fi
+fi
+# testing area
+#echo -e "\e[33m##### TESTING #####\e[0m"
+#echo " "
+#echo -e "\e[7m"$folderName"\e[0m will be the new folder name"
+#echo -e "the original folder is\e[32m" $originalFolder "\e[0m"
+#echo -e "the backup folder is\e[91m" $backupFolder "\e[0m"
+#echo " "
+#echo -e "\e[33m##### TESTING #####\e[0m"
+
+}
+
+#    ====================     bookmark verifier
+
+checkBookmarks() {
+
+logFile=/home/ross/Documents/bookMarkLog
+bookmarksFile=/home/ross/Documents/desktopbookmarks.html
+specificLink=
+
+# check the file to make sure it is there
+echo -e "\e[2m*** Verifying the bookmark file...\e[0m"
+until [ -f "$bookmarksFile" ]; do
+	echo -e "\e[33mPlease enter a valid file:\e[0m"
+	read bookmarksFile
+done
+echo -e "\e[2m*** Bookmark file is set...\e[0m"
+
+# spider mode wget
+echo -e "\e[2m*** Testing urls...\e[0m"
+wget --spider --force-html -t 4 -i $bookmarksFile -o $logFile
+#echo -e "\e[2m*** End wget line...\e[0m"
+echo -e "\e[2m*** Finished testing urls...\e[0m"
+
+# change the file to remove broken links
+
+}
+
+#    ====================     password creator
+
+
+password() {
+
+# setup
+word1=
+word2=
+pass=1
+
+# run it
+until [[ $pass = 0 ]]; do
+
+	# get the word
+	until [[ size=${word1} = 8 ]]; do
+		echo -e "\e[33mPlease enter a word that has eight letters:\e[0m"
+		read word1
+	done
+
+# get the phone number
+	until [[ size=${word2} = 7 ]]; do
+		echo -e "\e[33mPlease enter a seven digit phone number:\e[0m"
+		read word2
+	done
+
+	echo $word1 $word2
+
+# make the password
+
+# ask if want another made
+	echo -e "\e[33mEnter a 0 if you are done:\e[0m"
+	read pass
+
+done
+
+}
+
+#	=========================	diagnostics
+
+#	diskusage ===============
+
+diskusage() {
+
+du -h -s --exclude=".*"
+
+}
+
+#	filesystems =============
+
+filesystems() {
+
+df -h 
+
+}
+
+
+
+diagnostics() {
+
+testing=
+
+until [ "$testing" = "0" ]; do
+	clear
+	echo -e "\e[34m
+╔═══════════════════════════════╗
+║				║
+║	\e[0m Diagnostics\e[34m		║
+║				║
+║	\e[0m1 -\e[34m Disk Usage		║
+║				║
+║	\e[0m2 -\e[34m File Systems	║
+║				║
+║	\e[0m3 -\e[34m 			║
+║				║
+║	\e[0m4 -\e[34m 			║
+║				║
+║	\e[0m5 -\e[34m 			║
+║				║
+║	\e[0m0 -\e[34m Exit		║
+║				║
+╚═══════════════════════════════╝
+	
+	\e[0m"
+	
+	read testing
+	
+	case $testing in
+		1) diskusage ;;
+		2) filesystems ;;
+		3)  ;;
+		4)  ;;
+		5)  ;;
+		0) exit ;;
+		*) echo "Try again" ;;
+	esac
+clear
+done
+clear
+
+
+}
+
+
+
+
+#    ====================     menu
+
+until [ "$selection" = "0" ]; do
+	clear
+	echo -e "\e[34m
+╔═══════════════════════════════╗
+║				║
+║	\e[0m	Menu\e[34m		║
+║				║
+║	\e[0m1 -\e[34m Play numbers	║
+║				║
+║	\e[0m2 -\e[34m Check Bookmarks	║
+║				║
+║	\e[0m3 -\e[34m Backup files	║
+║				║
+║	\e[0m4 -\e[34m Password Creator	║
+║				║
+║	\e[0m5 -\e[34m Diagnostics		║
+║				║
+║	\e[0m0 -\e[34m Exit		║
+║				║
+╚═══════════════════════════════╝
+	
+	\e[0m"
+	
+	read selection
+	
+	case $selection in
+		1) numbersPlay ;;
+		2) checkBookmarks ;;
+		3) backup ;;
+		4) password ;;
+		5) diagnostics ;;
+		0) exit ;;
+		*) echo "Try again" ;;
+	esac
+clear
+done
+
+
